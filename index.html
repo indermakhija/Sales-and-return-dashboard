@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0083)file:///C:/Users/Inderpal%20S%20Makhija/Downloads/Sales_Dashboard_Light%20(24).html -->
+<!-- saved from url=(0083)file:///C:/Users/Inderpal%20S%20Makhija/Downloads/Sales_Dashboard_Light%20(25).html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -161,7 +161,7 @@ class MiniChart {
     const yTicks=this._niceTicks(minVal,maxVal,5);
     const yLabels=yTicks.map(v=>String(yTickCb(v)));
     const maxYLabelW=Math.max(...yLabels.map(l=>ctx.measureText(l).width));
-    const PAD={l:maxYLabelW+10,r:12,t:legendH+18,b:40};  // +18 for data labels headroom
+    const PAD={l:maxYLabelW+10,r:36,t:legendH+20,b:40};  // r:36 for last-bar label, t:20 for above-bar labels
     const cW=W-PAD.l-PAD.r, cH=H-PAD.t-PAD.b;
     const yRange=yTicks[yTicks.length-1]-yTicks[0];
     const yScale=v=>(1-(v-yTicks[0])/yRange)*cH+PAD.t;
@@ -208,27 +208,29 @@ class MiniChart {
         this._bars.push({x:bx,y:by,w:barW,h:bh,di,i:gi,val,label:lbl,dsLabel:ds.label});
         // Data label on bar
         const dlOpts=plugins.datalabels||{};
-        if(dlOpts.display!==false && bh>8){
+        if(dlOpts.display!==false && bh>1){
           const dlFmt=dlOpts.formatter||(v=>v);
           const dlText=String(dlFmt(val,{dataIndex:gi,dataset:ds,datasetIndex:di}));
-          const dlColor=dlOpts.color||'#fff';
-          const dlSize=dlOpts.font?.size||7;
-          const dlAnchor=dlOpts.anchor||'end';
-          const dlAlign=dlOpts.align||'top';
-          ctx.save();
-          ctx.font=`bold ${dlSize}px system-ui,sans-serif`;
-          ctx.fillStyle=dlColor;
-          ctx.textAlign='center';
-          // Position: above bar if anchor=end+align=top, inside if anchor=center
-          let dlY;
-          if(dlAnchor==='end'&&dlAlign==='top') dlY=by-3;
-          else if(dlAnchor==='center') dlY=by+bh/2;
-          else if(dlAnchor==='end'&&dlAlign==='bottom') dlY=by+bh-3;
-          else dlY=by-3;
-          ctx.textBaseline=dlAlign==='top'?'bottom':'middle';
-          // Clip to chart area so labels don't overflow
-          if(dlY>PAD.t-2 && dlY<H-PAD.b+2) ctx.fillText(dlText,bx+barW/2,dlY);
-          ctx.restore();
+          if(dlText){
+            const dlAnchor=dlOpts.anchor||'end';
+            const dlAlign=dlOpts.align||'top';
+            const dlSize=Math.max(6, (dlOpts.font?.size||7) - (nDS>2?1:0));
+            // Above bar: use dark text; inside bar: use white
+            const isAbove = dlAnchor==='end' && dlAlign==='top';
+            const dlColor = isAbove ? '#1a2c5a' : (dlOpts.color||'#fff');
+            ctx.save();
+            ctx.font=`bold ${dlSize}px system-ui,sans-serif`;
+            ctx.fillStyle=dlColor;
+            ctx.textAlign='center';
+            let dlY;
+            if(isAbove) dlY=by-4;
+            else if(dlAnchor==='center') dlY=by+bh/2;
+            else dlY=by+bh-3;
+            ctx.textBaseline=isAbove?'bottom':'middle';
+            // Allow labels slightly above chart top (labels need space)
+            if(dlY < H-PAD.b+4) ctx.fillText(dlText,bx+barW/2,dlY);
+            ctx.restore();
+          }
         }
       });
       // X label
@@ -1260,7 +1262,7 @@ canvas.clickable { cursor:pointer; }
       <div class="filter-row" data-filter="region">
         <span class="filter-label">Region</span>
         <div class="pill-group" id="fp-region">
-          <button class="pill active g" data-group="region" data-val="ALL">All</button>
+          <button class="pill g active" data-group="region" data-val="ALL">All</button>
           <button class="pill" data-group="region" data-val="North">North</button>
           <button class="pill" data-group="region" data-val="South">South</button>
           <button class="pill" data-group="region" data-val="East">East</button>
@@ -1422,7 +1424,7 @@ canvas.clickable { cursor:pointer; }
       <div class="filter-row" data-filter="channel">
         <span class="filter-label">Channel</span>
         <div class="pill-group" id="fp-channel">
-          <button class="pill active b" data-group="channel" data-val="ALL">All</button>
+          <button class="pill b active" data-group="channel" data-val="ALL">All</button>
           <button class="pill" data-group="channel" data-val="Channel Sales">Channel Sales</button>
           <button class="pill" data-group="channel" data-val="Ecom">Ecom</button>
           <button class="pill" data-group="channel" data-val="Large Format">Large Format</button>
@@ -1433,7 +1435,7 @@ canvas.clickable { cursor:pointer; }
       <div class="filter-row" data-filter="collection">
         <span class="filter-label">Collection</span>
         <div class="pill-group" id="fp-collection">
-          <button class="pill active p" data-group="collection" data-val="ALL">All</button>
+          <button class="pill p active" data-group="collection" data-val="ALL">All</button>
           <button class="pill" data-group="collection" data-val="INNERWEAR">Innerwear</button>
           <button class="pill" data-group="collection" data-val="OUTER WEAR">Outer Wear</button>
           <button class="pill" data-group="collection" data-val="LEG WEAR">Leg Wear</button>
@@ -1445,7 +1447,7 @@ canvas.clickable { cursor:pointer; }
       <div class="filter-row" data-filter="billing">
         <span class="filter-label">Billing</span>
         <div class="pill-group" id="fp-billing">
-          <button class="pill active t" data-group="billing" data-val="ALL">All</button>
+          <button class="pill t active" data-group="billing" data-val="ALL">All</button>
           <button class="pill" data-group="billing" data-val="SALES">Sales Only</button>
           <button class="pill" data-group="billing" data-val="RETURN">Returns Only</button>
         </div>
@@ -2413,7 +2415,7 @@ function renderMonthly() {
         tt.style.left=(x+ctx.tooltip.caretX+16)+'px';
         tt.style.top=(y+ctx.tooltip.caretY-40)+'px';
       }}
-    ,datalabels:{display:true,formatter:v=>v>=1?'\u20b9'+v.toFixed(1)+'Cr':'',color:'rgba(255,255,255,0.9)',font:{size:6},anchor:'end',align:'top'}},
+    ,datalabels:{display:true,formatter:v=>v>=0.5?'₹'+v.toFixed(1)+'Cr':'',anchor:'end',align:'top',font:{size:6}}},
     scales:{
       x:{grid:{display:false},ticks:{maxRotation:90,minRotation:90,font:{size:8},padding:4}},
       y:{grid:{color:'rgba(20,40,120,.05)'},ticks:{callback:v=>'₹'+v+'Cr',font:{size:8},maxTicksLimit:6}}
@@ -2473,7 +2475,7 @@ function renderCollection() {
       tt.style.display='block';
       const {x,y}=ctx.chart.canvas.getBoundingClientRect();
       tt.style.left=(x+ctx.tooltip.caretX+12)+'px';tt.style.top=(y+ctx.tooltip.caretY-20)+'px';
-    }},datalabels:{display:true,formatter:v=>v>=0.5?'\u20b9'+v.toFixed(1)+'Cr':'',color:'#fff',font:{size:7},anchor:'end',align:'top'}},
+    }},datalabels:{display:true,formatter:v=>v>=0.3?'₹'+v.toFixed(1)+'Cr':'',anchor:'end',align:'top',font:{size:7}}},
     scales:{x:{grid:{color:'rgba(20,40,120,.05)'},ticks:{callback:v=>'₹'+v+'Cr',font:{size:8},maxTicksLimit:5}},y:{grid:{display:false},ticks:{font:{size:8}}}}
   });
 }
@@ -2521,14 +2523,14 @@ function renderStateTable() {
 function renderBrick() {
   const sc=getScale(), top10=STATIC.brick.slice(0,10);
   mkChart('chart-brick','bar',{labels:top10.map(b=>b.name),datasets:[{data:top10.map(b=>+(b.net*sc/1e5).toFixed(0)),backgroundColor:PALETTE,borderRadius:4,borderSkipped:false}]},{
-    indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' ₹'+c.raw+'L'}},datalabels:{display:true,formatter:v=>v>=100?'\u20b9'+Math.round(v/100)+'Cr':'\u20b9'+Math.round(v)+'L',color:'#fff',font:{size:7},anchor:'end',align:'top'}},
+    indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' ₹'+c.raw+'L'}},datalabels:{display:true,formatter:v=>v>=50?v>=100?'₹'+Math.round(v/100)+'Cr':'₹'+Math.round(v)+'L':'',anchor:'end',align:'top',font:{size:7}}},
     scales:{x:{grid:{color:'rgba(20,40,120,.05)'},ticks:{callback:v=>v+'L',font:{size:8},maxTicksLimit:5}},y:{grid:{display:false},ticks:{font:{size:8}}}}
   });
 }
 function renderSize() {
   const sc=getScale();
   mkChart('chart-size','bar',{labels:STATIC.size.map(s=>s.name),datasets:[{data:STATIC.size.map(s=>+(s.net*sc/1e7).toFixed(2)),backgroundColor:PALETTE,borderRadius:4,borderSkipped:false}]},{
-    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`₹${c.raw}Cr`}},datalabels:{display:true,formatter:v=>v>=0.5?'\u20b9'+v.toFixed(1)+'Cr':'',color:'#fff',font:{size:7},anchor:'end',align:'top'}},
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`₹${c.raw}Cr`}},datalabels:{display:true,formatter:v=>v>=0.3?'₹'+v.toFixed(1)+'Cr':'',anchor:'end',align:'top',font:{size:7}}},
     scales:{x:{grid:{color:'rgba(20,40,120,.05)'},ticks:{font:{size:8}}},y:{grid:{color:'rgba(20,40,120,.05)'},ticks:{callback:v=>'₹'+v+'Cr',font:{size:8},maxTicksLimit:5}}}
   });
 }
@@ -2545,7 +2547,7 @@ function renderStateBar() {
   });
   let data = Object.values(stateMap).sort((a,b)=>b.net-a.net).slice(0,15);
   const colors={North:'#2952cc',South:'#0e7a6e',East:'#7a2a9a',West:'#c05a1a','Large Format (Rahul)':'#b05010','Ecom (Dev Pandey)':'#0b7dda',EBO:'#888',CFA:'#aaa'};
-  mkChart('chart-state-bar','bar',{labels:data.map(s=>s.name.replace(' WEAR','').replace('Tricity -HR-HP','Tricity').replace('Andhra Pradesh','Andhra').replace('Madhya Pradesh','MP').replace('Mumbai+Sub','Mumbai')),datasets:[{data:data.map(s=>s.net/1e5),backgroundColor:data.map(s=>colors[s.region]||'#888')}]},{plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'₹'+lkh(ctx.raw*1e5)}},datalabels:{display:true,formatter:v=>v>=100?'\u20b9'+Math.round(v/100)+'Cr':'\u20b9'+Math.round(v)+'L',color:'#fff',font:{size:6},anchor:'end',align:'top'}},scales:{x:{ticks:{font:{size:8},maxRotation:90,minRotation:90}},y:{ticks:{font:{size:8},callback:v=>'₹'+v/10+'L'},maxTicksLimit:5}}});
+  mkChart('chart-state-bar','bar',{labels:data.map(s=>s.name.replace(' WEAR','').replace('Tricity -HR-HP','Tricity').replace('Andhra Pradesh','Andhra').replace('Madhya Pradesh','MP').replace('Mumbai+Sub','Mumbai')),datasets:[{data:data.map(s=>s.net/1e5),backgroundColor:data.map(s=>colors[s.region]||'#888')}]},{plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'₹'+lkh(ctx.raw*1e5)}},datalabels:{display:true,formatter:v=>v>=50?v>=100?'₹'+Math.round(v/100)+'Cr':'₹'+Math.round(v)+'L':'',anchor:'end',align:'top',font:{size:7}}},scales:{x:{ticks:{font:{size:8},maxRotation:90,minRotation:90}},y:{ticks:{font:{size:8},callback:v=>'₹'+v/10+'L'},maxTicksLimit:5}}});
 }
 
 function renderBrandPage() {
@@ -2566,7 +2568,7 @@ function renderBrandPage() {
   const datasets = brands.map((b,i)=>({label:b,data:sorted.map(r=>(r[b]||0)/1e5),backgroundColor:bColors[i],borderRadius:3,borderSkipped:false,barPercentage:.8,categoryPercentage:.65}));
   if(document.getElementById('chart-brand-trend'))
     mkChart('chart-brand-trend','bar',{labels:sorted.map(r=>r.label),datasets},{
-      plugins:{legend:{display:true,labels:{boxWidth:9,font:{size:8},color:'#5a6480'}},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ₹${c.raw.toFixed(1)}L`}},datalabels:{display:true,formatter:v=>v>=100?'\u20b9'+Math.round(v/100)+'Cr':'\u20b9'+Math.round(v)+'L',color:'#fff',font:{size:6},anchor:'end',align:'top'}},
+      plugins:{legend:{display:true,labels:{boxWidth:9,font:{size:8},color:'#5a6480'}},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ₹${c.raw.toFixed(1)}L`}},datalabels:{display:true,formatter:v=>v>=50?v>=100?'₹'+Math.round(v/100)+'Cr':'₹'+Math.round(v)+'L':'',anchor:'end',align:'top',font:{size:7}}},
       scales:{x:{grid:{display:false},ticks:{maxRotation:90,minRotation:90,font:{size:8},padding:4}},y:{grid:{color:'rgba(20,40,120,.05)'},ticks:{callback:v=>'₹'+v+'L',font:{size:8},maxTicksLimit:5},stacked:false}}
     });
 
@@ -2578,7 +2580,7 @@ function renderBrandPage() {
   const bdatasets = brands.map((b,i)=>({label:b,data:colls.map(c=>(byColl[b+':'+c]||0)/1e5),backgroundColor:bColors[i],borderRadius:3,borderSkipped:false,barPercentage:.8}));
   if(document.getElementById('chart-brand-coll'))
     mkChart('chart-brand-coll','bar',{labels:colls.map(c=>c.replace(' WEAR','')),datasets:bdatasets},{
-      plugins:{legend:{display:true,labels:{boxWidth:9,font:{size:8},color:'#5a6480'}},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ₹${c.raw.toFixed(1)}L`}},datalabels:{display:true,formatter:v=>v>=100?'\u20b9'+Math.round(v/100)+'Cr':'\u20b9'+Math.round(v)+'L',color:'#fff',font:{size:6},anchor:'end',align:'top'}},
+      plugins:{legend:{display:true,labels:{boxWidth:9,font:{size:8},color:'#5a6480'}},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ₹${c.raw.toFixed(1)}L`}},datalabels:{display:true,formatter:v=>v>=50?v>=100?'₹'+Math.round(v/100)+'Cr':'₹'+Math.round(v)+'L':'',anchor:'end',align:'top',font:{size:7}}},
       scales:{x:{grid:{display:false},ticks:{font:{size:8}}},y:{grid:{color:'rgba(20,40,120,.05)'},ticks:{callback:v=>'₹'+v+'L',font:{size:8}}}}
     });
 }
