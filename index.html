@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0083)file:///C:/Users/Inderpal%20S%20Makhija/Downloads/Sales_Dashboard_Light%20(25).html -->
+<!-- saved from url=(0083)file:///C:/Users/Inderpal%20S%20Makhija/Downloads/Sales_Dashboard_Light%20(28).html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1262,7 +1262,7 @@ canvas.clickable { cursor:pointer; }
       <div class="filter-row" data-filter="region">
         <span class="filter-label">Region</span>
         <div class="pill-group" id="fp-region">
-          <button class="pill g active" data-group="region" data-val="ALL">All</button>
+          <button class="pill active g" data-group="region" data-val="ALL">All</button>
           <button class="pill" data-group="region" data-val="North">North</button>
           <button class="pill" data-group="region" data-val="South">South</button>
           <button class="pill" data-group="region" data-val="East">East</button>
@@ -1424,7 +1424,7 @@ canvas.clickable { cursor:pointer; }
       <div class="filter-row" data-filter="channel">
         <span class="filter-label">Channel</span>
         <div class="pill-group" id="fp-channel">
-          <button class="pill b active" data-group="channel" data-val="ALL">All</button>
+          <button class="pill active b" data-group="channel" data-val="ALL">All</button>
           <button class="pill" data-group="channel" data-val="Channel Sales">Channel Sales</button>
           <button class="pill" data-group="channel" data-val="Ecom">Ecom</button>
           <button class="pill" data-group="channel" data-val="Large Format">Large Format</button>
@@ -1435,7 +1435,7 @@ canvas.clickable { cursor:pointer; }
       <div class="filter-row" data-filter="collection">
         <span class="filter-label">Collection</span>
         <div class="pill-group" id="fp-collection">
-          <button class="pill p active" data-group="collection" data-val="ALL">All</button>
+          <button class="pill active p" data-group="collection" data-val="ALL">All</button>
           <button class="pill" data-group="collection" data-val="INNERWEAR">Innerwear</button>
           <button class="pill" data-group="collection" data-val="OUTER WEAR">Outer Wear</button>
           <button class="pill" data-group="collection" data-val="LEG WEAR">Leg Wear</button>
@@ -1447,7 +1447,7 @@ canvas.clickable { cursor:pointer; }
       <div class="filter-row" data-filter="billing">
         <span class="filter-label">Billing</span>
         <div class="pill-group" id="fp-billing">
-          <button class="pill t active" data-group="billing" data-val="ALL">All</button>
+          <button class="pill active t" data-group="billing" data-val="ALL">All</button>
           <button class="pill" data-group="billing" data-val="SALES">Sales Only</button>
           <button class="pill" data-group="billing" data-val="RETURN">Returns Only</button>
         </div>
@@ -2078,7 +2078,7 @@ canvas.clickable { cursor:pointer; }
 </div><!-- /shell -->
 
 <!-- Rich tooltip -->
-<div class="rich-tooltip" id="rich-tooltip" style="display: none;"></div>
+<div class="rich-tooltip" id="rich-tooltip"></div>
 <div class="map-tooltip" id="map-tooltip"></div>
 
 <script>
@@ -2141,11 +2141,11 @@ function filterCube(ov, txnType) {
   return src.filter(r => {
     if (txnType==='s' && r.t!=='s') return false;
     if (txnType==='r' && r.t!=='r') return false;
-    if (DF._fy) {
-      const {sy,sm,ey,em} = DF._fy;
+    if (DF._fy && DF._fy.length) {
       const ri = MONTH_ORDER.indexOf(r.m), ry = parseInt(r.y);
-      const inFY = (ry===sy&&ri>=sm)||(ry===ey&&ri<=em)||(ry>sy&&ry<ey);
-      if (!inFY) return false;
+      const inAny = DF._fy.some(({sy,sm,ey,em}) =>
+        (ry===sy&&ri>=sm)||(ry===ey&&ri<=em)||(ry>sy&&ry<ey));
+      if (!inAny) return false;
     } else {
       if (!DF.years.has('ALL') && !DF.years.has(r.y)) return false;
       if (!DF.months.has('ALL') && !DF.months.has(r.m)) return false;
@@ -2389,9 +2389,9 @@ function renderMonthly() {
     byYM[r.y][r.m]+=r.net;
   });
   const years = Object.keys(byYM).sort();
-  const isDateFiltered = !DF.years.has('ALL')||!DF.months.has('ALL')||DF._fy;
+  const isDateFiltered = !DF.years.has('ALL')||!DF.months.has('ALL')||(DF._fy&&DF._fy.length>0);
   const months = isDateFiltered
-    ? (DF._fy ? MONTH_ORDER.filter(m=>MONTH_ORDER.indexOf(m)>=DF._fy.sm&&MONTH_ORDER.indexOf(m)<=DF._fy.em)
+    ? (DF._fy?.length ? MONTH_ORDER.filter(m=>{const i=MONTH_ORDER.indexOf(m);return DF._fy.some(({sm,em})=>i>=sm||i<=em);})
               : MONTH_ORDER.filter(m=>DF.months.has('ALL')||DF.months.has(m)))
     : MONTH_ORDER;
 
@@ -2887,7 +2887,7 @@ function updateFilterChips() {
     });
   }
   if(!DF.months.has('ALL')){chips.push('Months: '+[...DF.months].join(', '));_clearFns.push(()=>clearMonths());}
-  if(DF._fy){chips.push('FY Preset');_clearFns.push(()=>{DF._fy=null;clearDateUI();renderAll();});}
+  if(DF._fy&&DF._fy.length){const fyNames=DF._fy.map(f=>Object.entries({FY2026:{sy:2025,sm:3,ey:2026,em:2},FY2025:{sy:2024,sm:3,ey:2025,em:2},FY2024:{sy:2023,sm:3,ey:2024,em:2}}).find(([,v])=>v.sy===f.sy&&v.sm===f.sm)?.[0]||'FY').join(' vs ');chips.push('FY: '+fyNames);_clearFns.push(()=>{DF._fy=null;clearDateUI();renderAll();});}
   document.getElementById('active-chips').innerHTML = chips.map((c,i)=>`<span class="fchip">${c}<span class="rm" onclick="event.stopPropagation();clearChipAt(${i})">×</span></span>`).join('');
 }
 function clearChipAt(i){_clearFns[i]&&_clearFns[i]();}
@@ -2967,20 +2967,70 @@ function toggleMonth(btn) {
   artPage=1;custPage=1;renderAll();
 }
 function applyPreset(btn, preset) {
-  document.querySelectorAll('.dpreset').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  DF._fy=null;DF.years=new Set(['ALL']);DF.months=new Set(['ALL']);
-  document.querySelectorAll('#month-grid .mpill').forEach(p=>p.classList.remove('active'));
-  document.querySelector('.mpill[data-month="ALL"]').classList.add('active');
-  setYr('ALL',false);
-  const FY = {
+  const FY_MAP = {
     FY2026:{sy:2025,sm:3,ey:2026,em:2},
     FY2025:{sy:2024,sm:3,ey:2025,em:2},
     FY2024:{sy:2023,sm:3,ey:2024,em:2}
   };
   const Q = {Q1:['Apr','May','Jun'],Q2:['Jul','Aug','Sep'],Q3:['Oct','Nov','Dec'],Q4:['Jan','Feb','Mar']};
-  if(FY[preset]){DF._fy=FY[preset];}
-  else if(Q[preset]){DF.months=new Set(Q[preset]);document.querySelector('.mpill[data-month="ALL"]').classList.remove('active');Q[preset].forEach(m=>{const p=document.querySelector(`.mpill[data-month="${m}"]`);if(p)p.classList.add('active');});}
+
+  if(FY_MAP[preset]) {
+    // FY tabs: multi-select toggle — clicking again deselects, 
+    // clicking different FY adds/removes it from selection
+    // Q buttons and ALL clear FY selection
+    if(!DF._fy) DF._fy = [];
+    const existing = DF._fy.findIndex(f=>f.sy===FY_MAP[preset].sy);
+    if(existing >= 0) {
+      // Deselect this FY
+      DF._fy.splice(existing, 1);
+      if(DF._fy.length === 0) DF._fy = null;
+    } else {
+      // Add this FY (max 3 FYs)
+      if(DF._fy.length >= 3) DF._fy.shift();
+      DF._fy.push(FY_MAP[preset]);
+    }
+    // Clear year pills, month pills, Q buttons
+    DF.years=new Set(['ALL']); DF.months=new Set(['ALL']);
+    setYr('ALL',false);
+    document.querySelectorAll('#month-grid .mpill').forEach(p=>p.classList.remove('active'));
+    const allMpill=document.querySelector('.mpill[data-month="ALL"]');
+    if(allMpill) allMpill.classList.add('active');
+    // Clear Q-button actives
+    document.querySelectorAll('.dpreset').forEach(b=>{
+      const p=b.getAttribute('onclick')||'';
+      if(p.includes("'Q")) b.classList.remove('active');
+      if(p.includes("'ALL")) b.classList.remove('active');
+    });
+    // Sync FY button active states
+    Object.keys(FY_MAP).forEach(key=>{
+      const b=document.querySelector(`.dpreset[onclick*="'${key}'"]`);
+      if(!b) return;
+      const isActive = DF._fy && DF._fy.some(f=>f.sy===FY_MAP[key].sy);
+      b.classList.toggle('active', !!isActive);
+    });
+    // If nothing selected, revert to ALL
+    if(!DF._fy || DF._fy.length===0) {
+      DF._fy=null;
+      const allBtn=[...document.querySelectorAll('.dpreset')].find(b=>(b.getAttribute('onclick')||'').includes("'ALL'"));
+      if(allBtn) allBtn.classList.add('active');
+    }
+  } else {
+    // ALL, Q1-Q4: clear FY selection, single-select
+    DF._fy=null;
+    DF.years=new Set(['ALL']); DF.months=new Set(['ALL']);
+    document.querySelectorAll('#month-grid .mpill').forEach(p=>p.classList.remove('active'));
+    const allMpill=document.querySelector('.mpill[data-month="ALL"]');
+    if(allMpill) allMpill.classList.add('active');
+    setYr('ALL',false);
+    document.querySelectorAll('.dpreset').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    if(Q[preset]){
+      DF.months=new Set(Q[preset]);
+      const allMpill2=document.querySelector('.mpill[data-month="ALL"]');
+      if(allMpill2) allMpill2.classList.remove('active');
+      Q[preset].forEach(m=>{const p=document.querySelector(`.mpill[data-month="${m}"]`);if(p)p.classList.add('active');});
+    }
+  }
   artPage=1;custPage=1;renderAll();
 }
 
@@ -3155,9 +3205,9 @@ window.renderMonthly = function() {
     byYM[r.y][r.m]+=r.net;
   });
   const years = Object.keys(byYM).sort();
-  const isDateFiltered = !DF.years.has('ALL')||!DF.months.has('ALL')||DF._fy;
+  const isDateFiltered = !DF.years.has('ALL')||!DF.months.has('ALL')||(DF._fy&&DF._fy.length>0);
   const months = isDateFiltered
-    ? (DF._fy ? MONTH_ORDER.filter(m=>MONTH_ORDER.indexOf(m)>=DF._fy.sm&&MONTH_ORDER.indexOf(m)<=DF._fy.em)
+    ? (DF._fy?.length ? MONTH_ORDER.filter(m=>{const i=MONTH_ORDER.indexOf(m);return DF._fy.some(({sm,em})=>i>=sm||i<=em);})
               : MONTH_ORDER.filter(m=>DF.months.has('ALL')||DF.months.has(m)))
     : MONTH_ORDER;
 
@@ -3523,7 +3573,7 @@ function resetAllFilters() {
   renderAll();
 }
 function updateResetBtn() {
-  const hasFilter=['brand','region','channel','collection','billing','state'].some(g=>!isAll(g))||!DF.years.has('ALL')||!DF.months.has('ALL')||DF._fy;
+  const hasFilter=['brand','region','channel','collection','billing','state'].some(g=>!isAll(g))||!DF.years.has('ALL')||!DF.months.has('ALL')||(DF._fy&&DF._fy.length>0);
   document.getElementById('reset-btn')?.classList.toggle('has-filters',hasFilter);
 }
 
